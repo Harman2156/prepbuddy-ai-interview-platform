@@ -143,7 +143,7 @@ function Interview() {
         const response =
           await axios.post(
 
-            "http://localhost:5000/api/interview/generate",
+            "https://prepbuddy-ai-interview-platform.onrender.com/api/interview/generate",
 
             {
               role,
@@ -196,7 +196,7 @@ function Interview() {
         const response =
           await axios.post(
 
-            "http://localhost:5000/api/interview/generate-resume",
+            "https://prepbuddy-ai-interview-platform.onrender.com/api/interview/generate-resume",
 
             formData
           );
@@ -285,7 +285,7 @@ function Interview() {
         const response =
           await axios.post(
 
-            "http://localhost:5000/api/interview/evaluate",
+            "https://prepbuddy-ai-interview-platform.onrender.com/api/interview/evaluate",
 
             {
               question:
@@ -365,7 +365,7 @@ function Interview() {
         const response =
           await axios.post(
 
-            "http://localhost:5000/api/interview/save",
+            "https://prepbuddy-ai-interview-platform.onrender.com/api/interview/save",
 
             {
               user: user._id,

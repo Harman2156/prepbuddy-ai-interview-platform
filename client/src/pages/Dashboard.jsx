@@ -61,7 +61,7 @@ function Dashboard() {
       const response =
         await axios.get(
 
-          `http://localhost:5000/api/auth/user/${user._id}`
+          `https://prepbuddy-ai-interview-platform.onrender.com/api/auth/user/${user._id}`
         );
 
       setUserData(
@@ -87,7 +87,7 @@ function Dashboard() {
       const response =
         await axios.get(
 
-          "http://localhost:5000/api/interview/history"
+          "https://prepbuddy-ai-interview-platform.onrender.com/api/interview/history"
         );
 
 
@@ -158,7 +158,7 @@ function Dashboard() {
       const response =
         await axios.post(
 
-          "http://localhost:5000/api/interview/analyze-resume",
+          "https://prepbuddy-ai-interview-platform.onrender.com/api/interview/analyze-resume",
 
           formData
         );
@@ -198,7 +198,7 @@ resumeFormData.append(
 
 await axios.post(
 
-  "http://localhost:5000/api/resume/upload",
+  "https://prepbuddy-ai-interview-platform.onrender.com/api/resume/upload",
 
   resumeFormData,
 

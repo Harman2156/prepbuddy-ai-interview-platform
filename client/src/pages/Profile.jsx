@@ -35,7 +35,7 @@ function Profile() {
         const response =
           await axios.get(
 
-            `http://localhost:5000/api/auth/user/${user._id}`
+            `https://prepbuddy-ai-interview-platform.onrender.com/api/auth/user/${user._id}`
           );
 
         setUserData(
@@ -62,7 +62,7 @@ function Profile() {
         const response =
           await axios.put(
 
-            `http://localhost:5000/api/auth/update/${user._id}`,
+            `https://prepbuddy-ai-interview-platform.onrender.com/api/auth/update/${user._id}`,
 
             {
               name: userData.name,

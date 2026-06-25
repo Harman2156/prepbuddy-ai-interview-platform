@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API = "http://localhost:5000/api/auth";
+const API = "https://prepbuddy-ai-interview-platform.onrender.com/api/auth";
 
 // REGISTER
 export const registerUser = async (userData) => {

@@ -38,7 +38,7 @@ function MyResumes() {
         const response =
           await axios.get(
 
-            `http://localhost:5000/api/resume/${user._id}`
+            `https://prepbuddy-ai-interview-platform.onrender.com/api/resume/${user._id}`
           );
 
         setResumes(
@@ -65,7 +65,7 @@ function MyResumes() {
 
         await axios.delete(
 
-          `http://localhost:5000/api/resume/${id}`
+          `https://prepbuddy-ai-interview-platform.onrender.com/api/resume/${id}`
         );
 
         fetchResumes();
@@ -179,7 +179,7 @@ function MyResumes() {
 
     window.open(
 
-      `http://localhost:5000/uploads/${item.resumeUrl.split("/").pop()}`,
+      `https://prepbuddy-ai-interview-platform.onrender.com/uploads/${item.resumeUrl.split("/").pop()}`,
 
       "_blank"
     );
