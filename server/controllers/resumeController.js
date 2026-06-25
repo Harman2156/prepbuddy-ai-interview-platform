@@ -43,7 +43,7 @@ async (req, res) => {
           req.file.originalname,
 
 resumeUrl:
-  `http://localhost:5000/uploads/${req.file.filename}`,
+  `https://prepbuddy-ai-interview-platform.onrender.com/uploads/${req.file.filename}`,
 
 
         atsScore,
