@@ -1,243 +1,147 @@
-const fs = require("fs");
-const path = require("path");
-const Resume =
-require("../models/Resume");
+const Resume = require("../models/Resume");
+const Interview = require("../models/Interview");
+const User = require("../models/User");
 
-const Interview =
-require("../models/Interview");
+const axios = require("axios");
+const pdfParse = require("pdf-parse");
 
-const User =
-require("../models/User");
-
-const axios =
-require("axios");
-
-
-
-const pdfParse =
-require("pdf-parse");
-
+const cloudinary = require("../config/cloudinary");
+const streamifier = require("streamifier");
 
 // ======================================
 // GENERATE ROLE-BASED QUESTIONS
 // ======================================
 
-const generateQuestions =
-async (req, res) => {
-
+const generateQuestions = async (req, res) => {
   try {
-
-    const {
-      role,
-      experience,
-      type,
-    } = req.body;
+    const { role, experience, type } = req.body;
 
     const prompt = `
+Generate 10 ${type} interview questions for a ${experience} level ${role}.
 
-Generate 10 ${type} interview questions  
-for a ${experience} level ${role}.
+Return ONLY a numbered list.
 
-Return ONLY a numbered list of questions.
-
-Do not add explanations.
-Do not add introductions.
+No explanations.
 `;
 
-    const response =
-      await axios.post(
-
-        "https://openrouter.ai/api/v1/chat/completions",
-
-        {
-
-          model:
-            "deepseek/deepseek-chat",
-
-          messages: [
-
-            {
-              role: "user",
-              content: prompt,
-            },
-          ],
-        },
-
-        {
-
-          headers: {
-
-            Authorization:
-              `Bearer ${process.env.OPENROUTER_API_KEY}`,
-
-            "Content-Type":
-              "application/json",
+    const response = await axios.post(
+      "https://openrouter.ai/api/v1/chat/completions",
+      {
+        model: "deepseek/deepseek-chat",
+        messages: [
+          {
+            role: "user",
+            content: prompt,
           },
-        }
+        ],
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    const questions = response.data.choices[0].message.content
+      .split("\n")
+      .filter(
+        (q) =>
+          q.trim() !== "" &&
+          !q.includes("Here are")
       );
 
-    const text =
-      response.data.choices[0]
-      .message.content;
-
-    const questions =
-      text
-        .split("\n")
-        .filter(
-
-          (q) =>
-
-            q.trim() !== "" &&
-
-            !q.includes(
-              "Here are"
-            )
-        );
-
     res.status(200).json({
-
       success: true,
-
       questions,
     });
 
   } catch (error) {
 
-    console.log(
-
-      error.response?.data ||
-
-      error.message
-    );
+    console.log(error.response?.data || error.message);
 
     res.status(500).json({
-
-      message:
-        "AI generation failed",
+      message: "AI generation failed",
     });
+
   }
 };
-
 
 // ======================================
 // GENERATE RESUME QUESTIONS
 // ======================================
 
-const generateResumeQuestions =
-async (req, res) => {
+const generateResumeQuestions = async (req, res) => {
 
   try {
 
-    const dataBuffer = req.file.buffer;
+    if (!req.file) {
 
-    const pdfData =
-      await pdfParse(
-        dataBuffer
-      );
+      return res.status(400).json({
+        message: "Resume not uploaded",
+      });
 
-    const resumeText =
-      pdfData.text;
+    }
+
+    const pdfData = await pdfParse(req.file.buffer);
 
     const prompt = `
+Generate 10 interview questions based on this resume.
 
-Generate 10 terview questions
-based on this resume:
+Resume:
 
-${resumeText}
+${pdfData.text}
 
-Return ONLY a numbered list of questions.
-
-Do not add explanations.
-Do not add introductions.
+Return ONLY numbered questions.
 `;
 
-    const response =
-      await axios.post(
-
-        "https://openrouter.ai/api/v1/chat/completions",
-
-        {
-
-          model:
-            "deepseek/deepseek-chat",
-
-          messages: [
-
-            {
-              role: "user",
-              content: prompt,
-            },
-          ],
-        },
-
-        {
-
-          headers: {
-
-            Authorization:
-              `Bearer ${process.env.OPENROUTER_API_KEY}`,
-
-            "Content-Type":
-              "application/json",
+    const response = await axios.post(
+      "https://openrouter.ai/api/v1/chat/completions",
+      {
+        model: "deepseek/deepseek-chat",
+        messages: [
+          {
+            role: "user",
+            content: prompt,
           },
-        }
+        ],
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    const questions = response.data.choices[0].message.content
+      .split("\n")
+      .filter(
+        (q) =>
+          q.trim() !== "" &&
+          !q.includes("Here are")
       );
 
-    const text =
-      response.data.choices[0]
-      .message.content;
-
-    const questions =
-      text
-        .split("\n")
-        .filter(
-
-          (q) =>
-
-            q.trim() !== "" &&
-
-            !q.includes(
-              "Here are"
-            )
-        );
-
     res.status(200).json({
-
       success: true,
-
       questions,
     });
 
   } catch (error) {
 
-    console.log(
-
-      error.response?.data ||
-
-      error.message ||
-
-      error
-    );
+    console.log(error.response?.data || error.message);
 
     res.status(500).json({
-
-      message:
-
-        error.response?.data ||
-
-        error.message ||
-
-        "Resume interview generation failed",
+      message: "Resume question generation failed",
     });
+
   }
+
 };
-
-
 // ======================================
 // AI RESUME ANALYSIS
 // ======================================
 const analyzeResume = async (req, res) => {
-
   try {
 
     if (!req.file) {
@@ -246,39 +150,35 @@ const analyzeResume = async (req, res) => {
       });
     }
 
-    const dataBuffer = req.file.buffer;
-
-    const pdfData = await pdfParse(dataBuffer);
+    // Read PDF directly from memory
+    const pdfData = await pdfParse(req.file.buffer);
 
     const resumeText = pdfData.text;
 
     const prompt = `
-Analyze this resume.
+Analyze this resume like an ATS system.
 
 Resume:
 ${resumeText}
 
-Give response in this format:
+Return ONLY in this format:
 
-ATS Score: /100
+ATS Score: <number>/100
 
 Strengths:
-- point
+- ...
 
 Missing Skills:
-- point
+- ...
 
 Suggestions:
-- point
+- ...
 `;
 
     const response = await axios.post(
-
       "https://openrouter.ai/api/v1/chat/completions",
-
       {
         model: "deepseek/deepseek-chat",
-
         messages: [
           {
             role: "user",
@@ -286,14 +186,12 @@ Suggestions:
           },
         ],
       },
-
       {
         headers: {
           Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
           "Content-Type": "application/json",
         },
       }
-
     );
 
     const analysis =
@@ -307,9 +205,8 @@ Suggestions:
   } catch (error) {
 
     console.log(
-      error.response?.data ||
-      error.message ||
-      error
+      "Resume Analysis Error:",
+      error.response?.data || error.message
     );
 
     res.status(500).json({
@@ -317,10 +214,7 @@ Suggestions:
     });
 
   }
-
 };
-
-
 // ======================================
 // EVALUATE ANSWER
 // ======================================
