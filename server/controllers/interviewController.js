@@ -1,4 +1,5 @@
-
+const fs = require("fs");
+const path = require("path");
 const Resume =
 require("../models/Resume");
 
@@ -128,13 +129,7 @@ async (req, res) => {
 
   try {
 
-    const pdfPath =
-      req.file.path;
-
-    const dataBuffer =
-      fs.readFileSync(
-        pdfPath
-      );
+    const dataBuffer = req.file.buffer;
 
     const pdfData =
       await pdfParse(
@@ -242,30 +237,23 @@ Do not add introductions.
 // ======================================
 // AI RESUME ANALYSIS
 // ======================================
-
-const analyzeResume =
-async (req, res) => {
+const analyzeResume = async (req, res) => {
 
   try {
 
-    const pdfPath =
-      req.file.path;
+    if (!req.file) {
+      return res.status(400).json({
+        message: "No resume uploaded",
+      });
+    }
 
-    const dataBuffer =
-      fs.readFileSync(
-        pdfPath
-      );
+    const dataBuffer = req.file.buffer;
 
-    const pdfData =
-      await pdfParse(
-        dataBuffer
-      );
+    const pdfData = await pdfParse(dataBuffer);
 
-    const resumeText =
-      pdfData.text;
+    const resumeText = pdfData.text;
 
     const prompt = `
-
 Analyze this resume.
 
 Resume:
@@ -285,67 +273,52 @@ Suggestions:
 - point
 `;
 
-    const response =
-      await axios.post(
+    const response = await axios.post(
 
-        "https://openrouter.ai/api/v1/chat/completions",
+      "https://openrouter.ai/api/v1/chat/completions",
 
-        {
+      {
+        model: "deepseek/deepseek-chat",
 
-          model:
-            "deepseek/deepseek-chat",
-
-          messages: [
-
-            {
-              role: "user",
-              content: prompt,
-            },
-          ],
-        },
-
-        {
-
-          headers: {
-
-            Authorization:
-              `Bearer ${process.env.OPENROUTER_API_KEY}`,
-
-            "Content-Type":
-              "application/json",
+        messages: [
+          {
+            role: "user",
+            content: prompt,
           },
-        }
-      );
+        ],
+      },
+
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+      }
+
+    );
 
     const analysis =
-      response.data
-      .choices[0]
-      .message.content;
+      response.data.choices[0].message.content;
 
-
-    
     res.status(200).json({
-
       success: true,
-
       analysis,
     });
 
   } catch (error) {
 
     console.log(
-
       error.response?.data ||
-
-      error.message
+      error.message ||
+      error
     );
 
     res.status(500).json({
-
-      message:
-        "Resume analysis failed",
+      message: "Resume analysis failed",
     });
+
   }
+
 };
 
 
