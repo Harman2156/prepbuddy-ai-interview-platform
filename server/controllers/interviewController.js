@@ -12,8 +12,7 @@ require("../models/User");
 const axios =
 require("axios");
 
-const fs =
-require("fs");
+
 
 const pdfParse =
 require("pdf-parse");
